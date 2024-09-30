@@ -1,101 +1,214 @@
-import Image from "next/image";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import Link from "next/link";
+import { FaClock } from "react-icons/fa6";
+import { useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { loginSchema } from "@/utils/schema-form-rules/login";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-toastify";
+import { getSession, signIn } from "next-auth/react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const toggleModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: LoginForm) => {
+    const { password, email } = data;
+    toast(
+      <div>
+        <p>🦄 So easy</p>
+        <p>usuário: {email}</p>
+        <p>senha: {password}</p>
+        <p>
+          (Utilize o react-toastfy para exibir notificações para o usuario, não
+          deixe o usuário realizar uma ação sem aparecer nada, obrigado!)
+        </p>
+      </div>,
+    );
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      return;
+    }
+    const session = await getSession();
+    toast.success("Login efetuado com sucesso! :)", {
+      position: "bottom-center",
+    });
+    console.log(session);
+  };
+
+  return (
+    <div className="h-max py-12 lg:h-dvh lg:w-[100dvw] flex items-center justify-center gap-5">
+      <div className="flex flex-col lg:flex-row items-center flex-wrap gap-6">
+        <Dialog open={isModalOpen} onOpenChange={toggleModal}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Shadcn Components e React Icons</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <p>
+                Utilize os componentes do shadcn para a construção padrão do seu
+                layout.
+              </p>
+              <Link
+                href={"https://ui.shadcn.com/docs"}
+                target="_blank"
+                className="text-blue-500"
+              >
+                https://ui.shadcn.com/docs
+              </Link>
+              <p>
+                Utilize os ícones do React-Icons, não instale outras bibliotecas
+                de componentes a menos que seja necessário.
+              </p>
+              <Link
+                href={"https://react-icons.github.io/react-icons/"}
+                target="_blank"
+                className="text-blue-500"
+              >
+                https://react-icons.github.io/react-icons/
+              </Link>
+              <div className="text-center text-red-500 text-sm mt-2 flex flex-col items-center justify-center gap-3 w-full">
+                <span>
+                  Por que usar outra lib se você tem esse relógio maneiro ?
+                </span>
+                <div className="w-[70px]">
+                  <FaClock className="clock-icon mr-2" />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={toggleModal}>Okay</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 grid"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Digite seu email"
+                      type="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Digite sua senha"
+                      type="password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Enviar</Button>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Informações
+            </Button>
+          </form>
+        </Form>
+        <div>
+          <Card className="max-w-[300px]">
+            <CardHeader>
+              <CardTitle>Validação de login</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <p className="text-sm">
+                O padrão de autenticação implementado aqui é o NextAuth
+              </p>
+              <div className="text-gray-500">
+                <p className="text-black">Tente os seguintes valores:</p>
+                <p>email: test@example.com</p>
+                <p>senha: password123</p>
+              </div>
+            </CardContent>
+            <CardFooter className="grid gap-3">
+              <p>
+                Caso a autenticação seja concluida, será adicionado o cookie
+                (next-auth.session-token) no seu navegador com as informações
+                criptografadas do seu usuário.
+              </p>
+              <Link
+                target="_blank"
+                href={"https://next-auth.js.org/getting-started/example"}
+                className="text-blue-500"
+              >
+                Mais informações
+              </Link>
+            </CardFooter>
+          </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
